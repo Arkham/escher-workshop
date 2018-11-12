@@ -1,6 +1,25 @@
-module Picture exposing (Picture, Rendering, above, aboveRatio, beside, besideRatio, blank, corner, flip, nonet, over, quartet, side, squareLimit, toss, ttile, turn, utile)
+module Picture exposing
+    ( Picture
+    , Rendering
+    , above
+    , aboveRatio
+    , beside
+    , besideRatio
+    , blank
+    , corner
+    , flip
+    , nonet
+    , over
+    , quartet
+    , side
+    , squareLimit
+    , toss
+    , ttile
+    , turn
+    , utile
+    )
 
-import Box exposing (..)
+import Box exposing (Box)
 import Shape exposing (..)
 import Style exposing (..)
 
@@ -24,7 +43,7 @@ blank _ =
 
 turn : Picture -> Picture
 turn p =
-    p
+    Box.turn >> p
 
 
 
@@ -33,7 +52,7 @@ turn p =
 
 flip : Picture -> Picture
 flip p =
-    p
+    Box.flip >> p
 
 
 
@@ -42,7 +61,7 @@ flip p =
 
 toss : Picture -> Picture
 toss p =
-    p
+    Box.toss >> p
 
 
 
@@ -51,12 +70,20 @@ toss p =
 
 aboveRatio : Int -> Int -> Picture -> Picture -> Picture
 aboveRatio m n p1 p2 =
-    blank
+    \box ->
+        let
+            factor =
+                toFloat m / toFloat (m + n)
+
+            ( boxAbove, boxBelow ) =
+                Box.split factor box
+        in
+        p1 boxAbove ++ p2 boxBelow
 
 
 above : Picture -> Picture -> Picture
 above p1 p2 =
-    blank
+    aboveRatio 1 1 p1 p2
 
 
 

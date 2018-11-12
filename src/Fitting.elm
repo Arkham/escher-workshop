@@ -66,4 +66,6 @@ createPicture shapes box =
         style =
             getStyle box
     in
-    shapes |> List.map (mapShape m) |> List.map (\s -> ( s, style ))
+    shapes
+        |> List.map (mapShape m)
+        |> List.map (\s -> ( s, style ))

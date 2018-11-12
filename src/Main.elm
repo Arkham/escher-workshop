@@ -19,5 +19,17 @@ main =
             }
     in
     box
-        |> createPicture fLetter
+        |> (createPicture fLetter
+                |> flip
+                |> aboveRatio 3 1 (createPicture fLetter)
+           )
         |> toSvg ( 400, 400 )
+
+
+times : Int -> (a -> a) -> (a -> a)
+times num f =
+    if num <= 0 then
+        identity
+
+    else
+        f >> times (num - 1) f
