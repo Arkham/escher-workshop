@@ -10,6 +10,7 @@ module Picture exposing
     , flip
     , nonet
     , over
+    , overList
     , quartet
     , side
     , squareLimit
@@ -76,7 +77,7 @@ aboveRatio m n p1 p2 =
                 toFloat m / toFloat (m + n)
 
             ( boxAbove, boxBelow ) =
-                Box.split factor box
+                Box.splitHorizontally factor box
         in
         p1 boxAbove ++ p2 boxBelow
 
@@ -92,12 +93,20 @@ above p1 p2 =
 
 besideRatio : Int -> Int -> Picture -> Picture -> Picture
 besideRatio m n p1 p2 =
-    blank
+    \box ->
+        let
+            factor =
+                toFloat m / toFloat (m + n)
+
+            ( boxAbove, boxBelow ) =
+                Box.splitVertically factor box
+        in
+        p1 boxAbove ++ p2 boxBelow
 
 
 beside : Picture -> Picture -> Picture
 beside p1 p2 =
-    blank
+    besideRatio 1 1 p1 p2
 
 
 
@@ -106,7 +115,9 @@ beside p1 p2 =
 
 quartet : Picture -> Picture -> Picture -> Picture -> Picture
 quartet nw ne sw se =
-    blank
+    above
+        (beside nw ne)
+        (beside sw se)
 
 
 
@@ -115,7 +126,14 @@ quartet nw ne sw se =
 
 nonet : Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture
 nonet nw nm ne mw mm me sw sm se =
-    blank
+    aboveRatio
+        1
+        2
+        (besideRatio 1 2 nw (beside nm ne))
+        (above
+            (besideRatio 1 2 mw (beside mm me))
+            (besideRatio 1 2 sw (beside sm se))
+        )
 
 
 
@@ -124,7 +142,13 @@ nonet nw nm ne mw mm me sw sm se =
 
 over : Picture -> Picture -> Picture
 over p1 p2 =
-    blank
+    overList [ p1, p2 ]
+
+
+overList : List Picture -> Picture
+overList list =
+    \box ->
+        List.concatMap (\elem -> elem box) list
 
 
 
@@ -133,7 +157,11 @@ over p1 p2 =
 
 ttile : Picture -> Picture
 ttile fish =
-    blank
+    overList
+        [ fish
+        , flip (toss fish)
+        , flip (turn (toss fish))
+        ]
 
 
 
@@ -142,7 +170,12 @@ ttile fish =
 
 utile : Picture -> Picture
 utile fish =
-    blank
+    overList
+        [ toss fish |> flip |> turn
+        , toss fish |> flip
+        , toss fish |> turn |> flip
+        , toss fish |> flip |> turn |> turn
+        ]
 
 
 
@@ -151,7 +184,15 @@ utile fish =
 
 side : Int -> Picture -> Picture
 side n fish =
-    blank
+    if n <= 0 then
+        blank
+
+    else
+        quartet
+            (side (n - 1) fish)
+            (side (n - 1) fish)
+            (turn (ttile fish))
+            (ttile fish)
 
 
 
@@ -160,7 +201,15 @@ side n fish =
 
 corner : Int -> Picture -> Picture
 corner n fish =
-    blank
+    if n <= 0 then
+        blank
+
+    else
+        quartet
+            (corner (n - 1) fish)
+            (side (n - 1) fish)
+            (turn (side (n - 1) fish))
+            (utile fish)
 
 
 
@@ -169,4 +218,17 @@ corner n fish =
 
 squareLimit : Int -> Picture -> Picture
 squareLimit n fish =
-    blank
+    if n <= 0 then
+        blank
+
+    else
+        nonet
+            (corner (n - 1) fish)
+            (side (n - 1) fish)
+            (corner (n - 1) fish |> turn |> turn |> turn)
+            (side (n - 1) fish |> turn)
+            (utile fish)
+            (side (n - 1) fish |> turn |> turn |> turn)
+            (corner (n - 1) fish |> turn)
+            (side (n - 1) fish |> turn |> turn)
+            (corner (n - 1) fish |> turn |> turn)

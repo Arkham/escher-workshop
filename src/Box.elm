@@ -1,4 +1,11 @@
-module Box exposing (Box, flip, split, toss, turn)
+module Box exposing
+    ( Box
+    , flip
+    , splitHorizontally
+    , splitVertically
+    , toss
+    , turn
+    )
 
 import Vector exposing (Vector)
 
@@ -34,8 +41,8 @@ toss { a, b, c } =
     }
 
 
-split : Float -> Box -> ( Box, Box )
-split factor { a, b, c } =
+splitHorizontally : Float -> Box -> ( Box, Box )
+splitHorizontally factor { a, b, c } =
     let
         aboveRatio =
             factor
@@ -56,3 +63,27 @@ split factor { a, b, c } =
             }
     in
     ( above, below )
+
+
+splitVertically : Float -> Box -> ( Box, Box )
+splitVertically factor { a, b, c } =
+    let
+        leftRatio =
+            factor
+
+        rightRatio =
+            1 - leftRatio
+
+        left =
+            { a = a
+            , b = Vector.scale leftRatio b
+            , c = c
+            }
+
+        right =
+            { a = Vector.add a (Vector.scale leftRatio b)
+            , b = Vector.scale rightRatio b
+            , c = c
+            }
+    in
+    ( left, right )
