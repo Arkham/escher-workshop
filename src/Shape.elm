@@ -1,4 +1,11 @@
-module Shape exposing (BezierShape, CurveShape, LineShape, PolygonShape, PolylineShape, Shape(..))
+module Shape exposing
+    ( BezierShape
+    , CurveShape
+    , LineShape
+    , PolygonShape
+    , PolylineShape
+    , Shape(..)
+    )
 
 import Vector exposing (..)
 

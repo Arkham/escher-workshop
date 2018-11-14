@@ -1,4 +1,4 @@
-module Style exposing (FillStyle, StrokeStyle, Style, StyleColor(..))
+module Style exposing (FillStyle, StrokeStyle, Style, StyleColor(..), colorToString)
 
 
 type StyleColor
@@ -21,3 +21,16 @@ type alias Style =
     { stroke : Maybe StrokeStyle
     , fill : Maybe FillStyle
     }
+
+
+colorToString : StyleColor -> String
+colorToString styleColor =
+    case styleColor of
+        Black ->
+            "black"
+
+        Grey ->
+            "grey"
+
+        White ->
+            "white"

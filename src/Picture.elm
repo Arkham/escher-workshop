@@ -1,5 +1,7 @@
 module Picture exposing
-    ( Picture
+    ( Hue(..)
+    , Lens
+    , Picture
     , Rendering
     , above
     , aboveRatio
@@ -14,6 +16,7 @@ module Picture exposing
     , quartet
     , side
     , squareLimit
+    , times
     , toss
     , ttile
     , turn
@@ -29,8 +32,36 @@ type alias Rendering =
     List ( Shape, Style )
 
 
+type Hue
+    = Blackish
+    | Greyish
+    | Whiteish
+
+
+type alias Lens =
+    ( Box, Hue )
+
+
 type alias Picture =
-    Box -> Rendering
+    Lens -> Rendering
+
+
+rehue : Picture -> Picture
+rehue p =
+    \( box, hue ) ->
+        let
+            newHue =
+                case hue of
+                    Blackish ->
+                        Greyish
+
+                    Greyish ->
+                        Whiteish
+
+                    Whiteish ->
+                        Blackish
+        in
+        p ( box, newHue )
 
 
 blank : Picture
@@ -44,7 +75,8 @@ blank _ =
 
 turn : Picture -> Picture
 turn p =
-    Box.turn >> p
+    \( box, hue ) ->
+        p ( Box.turn box, hue )
 
 
 
@@ -53,7 +85,8 @@ turn p =
 
 flip : Picture -> Picture
 flip p =
-    Box.flip >> p
+    \( box, hue ) ->
+        p ( Box.flip box, hue )
 
 
 
@@ -62,7 +95,8 @@ flip p =
 
 toss : Picture -> Picture
 toss p =
-    Box.toss >> p
+    \( box, hue ) ->
+        p ( Box.toss box, hue )
 
 
 
@@ -71,7 +105,7 @@ toss p =
 
 aboveRatio : Int -> Int -> Picture -> Picture -> Picture
 aboveRatio m n p1 p2 =
-    \box ->
+    \( box, hue ) ->
         let
             factor =
                 toFloat m / toFloat (m + n)
@@ -79,7 +113,7 @@ aboveRatio m n p1 p2 =
             ( boxAbove, boxBelow ) =
                 Box.splitHorizontally factor box
         in
-        p1 boxAbove ++ p2 boxBelow
+        p1 ( boxAbove, hue ) ++ p2 ( boxBelow, hue )
 
 
 above : Picture -> Picture -> Picture
@@ -93,7 +127,7 @@ above p1 p2 =
 
 besideRatio : Int -> Int -> Picture -> Picture -> Picture
 besideRatio m n p1 p2 =
-    \box ->
+    \( box, hue ) ->
         let
             factor =
                 toFloat m / toFloat (m + n)
@@ -101,7 +135,7 @@ besideRatio m n p1 p2 =
             ( boxAbove, boxBelow ) =
                 Box.splitVertically factor box
         in
-        p1 boxAbove ++ p2 boxBelow
+        p1 ( boxAbove, hue ) ++ p2 ( boxBelow, hue )
 
 
 beside : Picture -> Picture -> Picture
@@ -159,8 +193,8 @@ ttile : Picture -> Picture
 ttile fish =
     overList
         [ fish
-        , flip (toss fish)
-        , flip (turn (toss fish))
+        , toss fish |> flip
+        , toss fish |> turn |> flip
         ]
 
 
@@ -174,7 +208,7 @@ utile fish =
         [ toss fish |> flip |> turn
         , toss fish |> flip
         , toss fish |> turn |> flip
-        , toss fish |> flip |> turn |> turn
+        , toss fish |> flip |> times 2 turn
         ]
 
 
@@ -225,10 +259,19 @@ squareLimit n fish =
         nonet
             (corner (n - 1) fish)
             (side (n - 1) fish)
-            (corner (n - 1) fish |> turn |> turn |> turn)
+            (corner (n - 1) fish |> times 3 turn)
             (side (n - 1) fish |> turn)
             (utile fish)
-            (side (n - 1) fish |> turn |> turn |> turn)
+            (side (n - 1) fish |> times 3 turn)
             (corner (n - 1) fish |> turn)
-            (side (n - 1) fish |> turn |> turn)
-            (corner (n - 1) fish |> turn |> turn)
+            (side (n - 1) fish |> times 2 turn)
+            (corner (n - 1) fish |> times 2 turn)
+
+
+times : Int -> (a -> a) -> (a -> a)
+times num f =
+    if num <= 0 then
+        identity
+
+    else
+        f >> times (num - 1) f

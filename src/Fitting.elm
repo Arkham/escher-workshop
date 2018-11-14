@@ -1,7 +1,7 @@
 module Fitting exposing (createPicture)
 
 import Box exposing (Box)
-import Picture exposing (Picture)
+import Picture exposing (Hue(..), Lens, Picture)
 import Shape exposing (..)
 import Style exposing (..)
 import Vector exposing (Vector, add, length, scale)
@@ -21,18 +21,42 @@ getStrokeWidth { b, c } =
     s / 80.0
 
 
-getStyle : Box -> Style
-getStyle box =
+getStyle : Box -> Hue -> Style
+getStyle box hue =
     let
         sw =
             getStrokeWidth box
+
+        strokeColor =
+            case hue of
+                Blackish ->
+                    White
+
+                Greyish ->
+                    White
+
+                Whiteish ->
+                    Black
+
+        fillColor =
+            case hue of
+                Blackish ->
+                    Black
+
+                Greyish ->
+                    Grey
+
+                Whiteish ->
+                    White
     in
     { stroke =
         Just
             { strokeWidth = sw
-            , strokeColor = Black
+            , strokeColor = strokeColor
             }
-    , fill = Nothing
+    , fill =
+        Just
+            { fillColor = fillColor }
     }
 
 
@@ -58,13 +82,13 @@ mapShape m shape =
 
 
 createPicture : List Shape -> Picture
-createPicture shapes box =
+createPicture shapes ( box, hue ) =
     let
         m =
             mapper box
 
         style =
-            getStyle box
+            getStyle box hue
     in
     shapes
         |> List.map (mapShape m)

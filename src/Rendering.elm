@@ -19,19 +19,45 @@ getStrokeWidthFromStyle style =
             2.0
 
 
+getStrokeColorFromStyle : Maybe StrokeStyle -> String
+getStrokeColorFromStyle style =
+    case style of
+        Just { strokeColor } ->
+            colorToString strokeColor
+
+        Nothing ->
+            "black"
+
+
+getFillColorFromStyle : Maybe FillStyle -> String
+getFillColorFromStyle style =
+    case style of
+        Just { fillColor } ->
+            colorToString fillColor
+
+        Nothing ->
+            "none"
+
+
 toPolygonElement : Style -> List Vector -> Svg msg
 toPolygonElement style pts =
     let
         s =
             pts |> List.map Vector.toString |> String.join " "
 
-        sw =
+        width =
             getStrokeWidthFromStyle style.stroke
+
+        strokeColor =
+            getStrokeColorFromStyle style.stroke
+
+        fillColor =
+            getFillColorFromStyle style.fill
     in
     Svg.polygon
-        [ stroke "Black"
-        , strokeWidth <| String.fromFloat sw
-        , fill "None"
+        [ stroke strokeColor
+        , strokeWidth <| String.fromFloat width
+        , fill fillColor
         , points s
         ]
         []
@@ -43,13 +69,19 @@ toPolylineElement style pts =
         s =
             pts |> List.map Vector.toString |> String.join " "
 
-        sw =
+        width =
             getStrokeWidthFromStyle style.stroke
+
+        strokeColor =
+            getStrokeColorFromStyle style.stroke
+
+        fillColor =
+            getFillColorFromStyle style.fill
     in
     Svg.polyline
-        [ stroke "Black"
-        , strokeWidth <| String.fromFloat sw
-        , fill "None"
+        [ stroke strokeColor
+        , strokeWidth <| String.fromFloat width
+        , fill fillColor
         , points s
         ]
         []
@@ -76,13 +108,19 @@ toCurveElement style pt1 pt2 pt3 pt4 =
         dval =
             "M" ++ pt1s ++ " C " ++ pt2s ++ ", " ++ pt3s ++ ", " ++ pt4s
 
-        sw =
+        width =
             getStrokeWidthFromStyle style.stroke
+
+        strokeColor =
+            getStrokeColorFromStyle style.stroke
+
+        fillColor =
+            getFillColorFromStyle style.fill
     in
     Svg.path
-        [ stroke "Black"
-        , strokeWidth <| String.fromFloat sw
-        , fill "None"
+        [ stroke strokeColor
+        , strokeWidth <| String.fromFloat width
+        , fill fillColor
         , d dval
         ]
         []
@@ -99,6 +137,14 @@ toSvgElement style shape =
 
         Curve { point1, point2, point3, point4 } ->
             toCurveElement style point1 point2 point3 point4
+
+        Path ( start, beziers ) ->
+            Svg.path [] <|
+                List.map
+                    (\{ controlPoint1, controlPoint2, endPoint } ->
+                        toCurveElement style start controlPoint1 controlPoint2 endPoint
+                    )
+                    beziers
 
         x ->
             text "nothing"
