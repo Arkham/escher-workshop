@@ -189,61 +189,124 @@ overList list =
 -- Exercise 9
 
 
-ttile : Picture -> Picture
-ttile fish =
+ttile : (Picture -> Picture) -> (Picture -> Picture) -> Picture -> Picture
+ttile hueN hueE fish =
+    let
+        fishN =
+            fish |> toss |> flip
+
+        fishE =
+            fish |> toss |> turn |> flip
+    in
     overList
         [ fish
-        , toss fish |> flip
-        , toss fish |> turn |> flip
+        , fishN |> hueN
+        , fishE |> hueE
         ]
+
+
+ttile1 =
+    ttile rehue (rehue >> rehue)
+
+
+ttile2 =
+    ttile (rehue >> rehue) rehue
 
 
 
 -- Exercise 10
 
 
-utile : Picture -> Picture
-utile fish =
+utile : (Picture -> Picture) -> (Picture -> Picture) -> (Picture -> Picture) -> (Picture -> Picture) -> Picture -> Picture
+utile hueN hueW hueS hueE fish =
+    let
+        fishN =
+            fish |> toss |> flip
+
+        fishW =
+            fishN |> turn
+
+        fishS =
+            fishW |> turn
+
+        fishE =
+            fishS |> turn
+    in
     overList
-        [ toss fish |> flip |> turn
-        , toss fish |> flip
-        , toss fish |> turn |> flip
-        , toss fish |> flip |> times 2 turn
+        [ fishN |> hueN
+        , fishW |> hueW
+        , fishS |> hueS
+        , fishE |> hueE
         ]
+
+
+utile1 =
+    utile (rehue >> rehue) identity (rehue >> rehue) identity
+
+
+utile2 =
+    utile identity (rehue >> rehue) rehue (rehue >> rehue)
+
+
+utile3 =
+    utile (rehue >> rehue) identity rehue identity
 
 
 
 -- Exercise 11
 
 
-side : Int -> Picture -> Picture
-side n fish =
+side : (Picture -> Picture) -> (Picture -> Picture) -> (Picture -> Picture) -> Int -> Picture -> Picture
+side tt hueSW hueSE n fish =
     if n <= 0 then
         blank
 
     else
+        let
+            t =
+                tt fish
+
+            rec f =
+                side tt hueSW hueSE (n - 1) f
+        in
         quartet
-            (side (n - 1) fish)
-            (side (n - 1) fish)
-            (turn (ttile fish))
-            (ttile fish)
+            (rec fish)
+            (rec fish)
+            (t |> turn |> hueSW)
+            (t |> hueSE)
+
+
+side1 =
+    side ttile1 identity rehue
+
+
+side2 =
+    side ttile2 (rehue >> rehue) rehue
 
 
 
 -- Exercise 12
 
 
-corner : Int -> Picture -> Picture
-corner n fish =
+corner : (Picture -> Picture) -> (Int -> Picture -> Picture) -> (Int -> Picture -> Picture) -> Int -> Picture -> Picture
+corner ut sideNE sideSW n fish =
     if n <= 0 then
         blank
 
     else
         quartet
-            (corner (n - 1) fish)
-            (side (n - 1) fish)
-            (turn (side (n - 1) fish))
-            (utile fish)
+            (corner ut sideNE sideSW (n - 1) fish)
+            (sideNE (n - 1) fish)
+            (turn (sideSW (n - 1) fish))
+            (ut fish)
+
+
+corner1 =
+    corner utile3 side1 side2
+
+
+corner2 =
+    corner utile2 side2 side1
 
 
 
@@ -256,16 +319,44 @@ squareLimit n fish =
         blank
 
     else
+        let
+            cornerNW =
+                corner1 n fish
+
+            cornerSW =
+                corner2 n fish |> turn
+
+            cornerSE =
+                cornerNW |> times 2 turn
+
+            cornerNE =
+                cornerSW |> times 2 turn
+
+            sideN =
+                side1 n fish
+
+            sideW =
+                side2 n fish |> turn
+
+            sideS =
+                sideN |> times 2 turn
+
+            sideE =
+                sideW |> times 2 turn
+
+            center =
+                utile1 fish
+        in
         nonet
-            (corner (n - 1) fish)
-            (side (n - 1) fish)
-            (corner (n - 1) fish |> times 3 turn)
-            (side (n - 1) fish |> turn)
-            (utile fish)
-            (side (n - 1) fish |> times 3 turn)
-            (corner (n - 1) fish |> turn)
-            (side (n - 1) fish |> times 2 turn)
-            (corner (n - 1) fish |> times 2 turn)
+            cornerNW
+            sideN
+            cornerNE
+            sideW
+            center
+            sideE
+            cornerSW
+            sideS
+            cornerSE
 
 
 times : Int -> (a -> a) -> (a -> a)

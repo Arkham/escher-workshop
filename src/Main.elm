@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Figure exposing (george)
-import Fishy exposing (fishShapes)
+import Fishier exposing (fishShapes)
 import Fitting exposing (createPicture)
 import Letter exposing (..)
 import Picture exposing (..)
@@ -14,15 +14,15 @@ main =
     let
         box =
             { a = { x = 75.0, y = 75.0 }
-            , b = { x = 700.0, y = 0.0 }
-            , c = { x = 0.0, y = 700.0 }
+            , b = { x = 600.0, y = 0.0 }
+            , c = { x = 0.0, y = 600.0 }
             }
 
         fish =
             createPicture fishShapes
     in
     ( box, Blackish )
-        |> fish
+        |> squareLimit 5 fish
         |> toSvg ( 800, 800 )
 
 

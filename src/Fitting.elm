@@ -77,6 +77,16 @@ mapShape m shape =
                 , point4 = m point4
                 }
 
+        Path pathStyle ( start, beziers ) ->
+            let
+                mapBezier { controlPoint1, controlPoint2, endPoint } =
+                    { controlPoint1 = m controlPoint1
+                    , controlPoint2 = m controlPoint2
+                    , endPoint = m endPoint
+                    }
+            in
+            Path pathStyle ( m start, List.map mapBezier beziers )
+
         x ->
             x
 

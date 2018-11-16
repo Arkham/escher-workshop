@@ -74,14 +74,11 @@ toPolylineElement style pts =
 
         strokeColor =
             getStrokeColorFromStyle style.stroke
-
-        fillColor =
-            getFillColorFromStyle style.fill
     in
     Svg.polyline
         [ stroke strokeColor
         , strokeWidth <| String.fromFloat width
-        , fill fillColor
+        , fill "none"
         , points s
         ]
         []
@@ -113,9 +110,51 @@ toCurveElement style pt1 pt2 pt3 pt4 =
 
         strokeColor =
             getStrokeColorFromStyle style.stroke
+    in
+    Svg.path
+        [ stroke strokeColor
+        , strokeWidth <| String.fromFloat width
+        , fill "none"
+        , d dval
+        ]
+        []
+
+
+toPathElement : PathStyle -> Style -> Vector -> List BezierShape -> Svg msg
+toPathElement pathStyle style start beziers =
+    let
+        toStr vector =
+            Vector.toStringWith vector " "
+
+        allBeziers =
+            List.map
+                (\{ controlPoint1, controlPoint2, endPoint } ->
+                    " C "
+                        ++ toStr controlPoint1
+                        ++ ", "
+                        ++ toStr controlPoint2
+                        ++ ", "
+                        ++ toStr endPoint
+                )
+                beziers
+                |> String.concat
+
+        dval =
+            "M" ++ toStr start ++ allBeziers
+
+        width =
+            getStrokeWidthFromStyle style.stroke
+
+        strokeColor =
+            getStrokeColorFromStyle style.stroke
 
         fillColor =
-            getFillColorFromStyle style.fill
+            case pathStyle of
+                Normal ->
+                    getFillColorFromStyle style.fill
+
+                Inverted ->
+                    strokeColor
     in
     Svg.path
         [ stroke strokeColor
@@ -138,13 +177,8 @@ toSvgElement style shape =
         Curve { point1, point2, point3, point4 } ->
             toCurveElement style point1 point2 point3 point4
 
-        Path ( start, beziers ) ->
-            Svg.path [] <|
-                List.map
-                    (\{ controlPoint1, controlPoint2, endPoint } ->
-                        toCurveElement style start controlPoint1 controlPoint2 endPoint
-                    )
-                    beziers
+        Path bezierStyle ( start, beziers ) ->
+            toPathElement bezierStyle style start beziers
 
         x ->
             text "nothing"

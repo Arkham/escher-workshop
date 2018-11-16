@@ -2,6 +2,7 @@ module Shape exposing
     ( BezierShape
     , CurveShape
     , LineShape
+    , PathStyle(..)
     , PolygonShape
     , PolylineShape
     , Shape(..)
@@ -39,9 +40,14 @@ type alias BezierShape =
     }
 
 
+type PathStyle
+    = Normal
+    | Inverted
+
+
 type Shape
     = Line LineShape
     | Polygon PolygonShape
     | Polyline PolylineShape
     | Curve CurveShape
-    | Path ( Vector, List BezierShape )
+    | Path PathStyle ( Vector, List BezierShape )

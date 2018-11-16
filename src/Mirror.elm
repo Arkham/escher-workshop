@@ -32,5 +32,12 @@ mirrorShape mirror shape =
                 , point4 = mirror point4
                 }
 
-        x ->
-            x
+        Path pathStyle ( start, beziers ) ->
+            let
+                mirrorBezier { controlPoint1, controlPoint2, endPoint } =
+                    { controlPoint1 = mirror controlPoint1
+                    , controlPoint2 = mirror controlPoint2
+                    , endPoint = mirror endPoint
+                    }
+            in
+            Path pathStyle ( mirror start, List.map mirrorBezier beziers )
